@@ -1,245 +1,216 @@
-✈️ Air Tracker – Aviation Analytics Platform
+# ✈️ Air Tracker – Aviation Analytics Dashboard
 
-An end-to-end aviation data analytics web application built using Python, SQLite, SQL, and Streamlit.
-The project extracts aviation data, stores it in a normalized SQL database, and visualizes operational insights through an interactive, multi-page Streamlit dashboard.
+An end-to-end Aviation Data Analytics Web Application built using Python, SQL (SQLite), and Streamlit.  
+This project demonstrates the complete analytics lifecycle — from data extraction and database design to optimized SQL querying and interactive visualization.
 
-📌 Project Overview
+---
 
-The Air Tracker project focuses on analyzing aviation operations such as:
+## 📌 Project Overview
 
-Airport information and connectivity
+Air Tracker analyzes aviation operations data to provide insights into:
 
-Flight movements and statuses
+- Airports and their geographical distribution
+- Flight operations and statuses
+- Airline activity and route density
+- Airport-level delay and cancellation patterns
 
-Aircraft metadata
+The application enables users to explore flight data, analyze delays, visualize airport networks, and identify busy routes through a multi-page interactive dashboard.
 
-Airport-level delay metrics
+---
 
-The application enables users to explore airport networks, analyze delays, filter flights, and identify busy routes, providing meaningful operational insights through interactive dashboards.
+## 🎯 Objectives
 
-🎯 Objectives
+- Extract and structure aviation data accurately
+- Design a normalized SQL database schema
+- Write efficient SQL queries for analytics
+- Build a multi-page Streamlit dashboard
+- Visualize trends, distributions, and relationships
+- Deliver a complete end-to-end analytics solution
 
-Extract and structure aviation data efficiently
+---
 
-Design a normalized SQL database schema
+## 🏗️ Project Architecture
 
-Write optimized SQL queries for analytics
-
-Build an interactive, user-friendly Streamlit application
-
-Visualize trends, delays, and route performance
-
-Demonstrate end-to-end data analytics workflow
-
-🏗️ Project Architecture
 air_tracker/
 │
 ├── database/
 │   └── air_tracker.db          # SQLite database
 │
 ├── data/
-│   └── *.csv                   # Raw / intermediate datasets
+│   └── *.csv                   # Raw / processed datasets
 │
 ├── notebooks/
-│   └── *.ipynb                 # Data exploration & validation
+│   └── *.ipynb                 # Exploration & validation
 │
 ├── streamlit_app/
-│   ├── app.py                  # Homepage dashboard
+│   ├── app.py                  # Homepage (KPIs & overview)
 │   ├── db.py                   # Centralized DB connection
 │   └── pages/
-│       ├── 1_Flights.py        # Flight search & filters
-│       ├── 2_Airports.py       # Airport details + map
-│       ├── 3_Delay_Analysis.py # Delay analytics
-│       └── 4_Routes.py         # Route leaderboards
+│       ├── 1_Flights.py        # Flight search & analysis
+│       ├── 2_Airports.py       # Airport details & map
+│       ├── 3_Delay_Analysis.py # Delay insights
+│       └── 4_Routes.py         # Route analytics
 │
-├── README.md
-└── requirements.txt
+├── requirements.txt
+└── README.md
 
-🗄️ Database Design
+---
+
+## 🗄️ Database Design
 
 The project uses SQLite with a normalized relational schema.
 
-Tables Overview
-airport
+### Tables
+
+airport  
+- Airport master data  
+- IATA / ICAO codes  
+- City, country, continent  
+- Latitude, longitude, timezone  
 
-Stores airport master data
+aircraft  
+- Aircraft registration  
+- Manufacturer and model  
+- ICAO type code  
 
-IATA / ICAO codes
+flights  
+- Flight number  
+- Airline name  
+- Origin and destination airports  
+- Scheduled and actual times  
+- Flight status and type  
 
-Location (latitude, longitude)
+airport_delays  
+- Total flights  
+- Delayed flights  
+- Average and median delay (minutes)  
+- Cancelled flights  
 
-City, country, timezone
+This design avoids redundancy and supports efficient analytics.
 
-aircraft
+---
 
-Stores aircraft metadata
+## 📊 Application Features
 
-Registration
+### Homepage – Executive Dashboard
+- Total number of airports
+- Total flights fetched
+- Average delay across airports
+- Flight status distribution (Pie / Bar charts)
+- Top airlines by flight volume
 
-Model
+### Flights Page
+- Search by airline or flight number
+- Filter by flight status
+- Flights table with live SQL queries
+- Airline distribution and origin-airport analysis
 
-Manufacturer
+### Airports Page
+- Interactive airport map (latitude & longitude)
+- Airport details viewer
+- Linked inbound and outbound flights
+- Airport traffic ranking charts
 
-ICAO type code
+### Delay Analysis Page
+- Average vs median delay comparison
+- Delay percentage by airport
+- Cancelled flights analysis
+- Histograms, scatter plots, and box plots
 
-flights
+### Routes Page
+- Busiest routes by flight count
+- Route traffic heatmap
+- Most delayed airports
 
-Stores operational flight records
+---
 
-Flight number
+## 📈 Visualizations Used
 
-Airline
+- Bar charts
+- Pie and donut charts
+- Histograms
+- Scatter plots
+- Box plots
+- Heatmaps
+- Geospatial maps
 
-Origin & destination airports
+Charts were selected based on business questions rather than using a single chart type everywhere.
 
-Schedule & actual times
+---
 
-Status and flight type
+## 🧠 Technologies Used
 
-airport_delays
+- Python
+- SQLite and SQL
+- Pandas
+- Streamlit
+- Plotly Express
 
-Stores aggregated delay metrics
+---
 
-Total flights
+## 🚀 How to Run the Application
 
-Delayed flights
+1. Clone the repository  
+git clone <repository-url>  
+cd air_tracker  
 
-Average & median delay (minutes)
+2. Install dependencies  
+pip install -r requirements.txt  
 
-Cancellations
+3. Run Streamlit app  
+cd streamlit_app  
+python3 -m streamlit run app.py  
 
-This separation ensures data integrity, scalability, and efficient querying.
+4. Open in browser  
+http://localhost:8501  
 
-📊 Key Features
-🏠 Homepage Dashboard
+---
 
-Total number of airports
+## 📦 requirements.txt
 
-Total flights fetched
+streamlit>=1.30.0  
+pandas>=2.0.0  
+plotly>=5.15.0  
 
-Average delay across airports
+---
 
-✈️ Flight Search & Filters
+## 🧪 Error Handling & Robustness
 
-Search by flight number or airline
+- Centralized database connection using absolute paths
+- Schema validation during development
+- Graceful handling of missing or null values
+- Streamlit page isolation to prevent app-wide crashes
 
-Filter by flight status
+---
 
-View real-time query results
+## 📌 Key Learnings
 
-🏢 Airport Details Viewer
+- Designing analytics-focused SQL schemas
+- Writing optimized SQL queries for insights
+- Building modular multi-page Streamlit applications
+- Handling real-world issues such as schema mismatches and file paths
+- Translating raw data into actionable insights
 
-Airport metadata (location, timezone)
+---
 
-Linked inbound and outbound flights
+## 🔮 Future Enhancements
 
-Interactive airport selection
+- Airline-level performance KPIs
+- Date-range based trend analysis
+- Route flow visualization on maps
+- Live API-based data ingestion
+- Deployment on Streamlit Cloud
 
-🌍 Airport Map Visualization
+---
 
-Geospatial view of airports using latitude & longitude
+## 👤 Author
 
-Visual understanding of airport distribution
-
-⏱️ Delay Analysis
-
-Average & median delays by airport
-
-Delay percentage calculation
-
-Interactive charts for comparison
-
-📍 Route Leaderboards
-
-Busiest routes by flight count
-
-Most delayed airports
-
-🧠 Technologies Used
-
-Python – Data processing and application logic
-
-SQLite – Lightweight relational database
-
-SQL – Analytical queries and aggregations
-
-Pandas – Data manipulation
-
-Streamlit – Interactive web application
-
-Plotly – Charts and visualizations
-
-🚀 How to Run the Application
-1️⃣ Clone the Repository
-git clone <your-repo-url>
-cd air_tracker
-
-2️⃣ Install Dependencies
-pip3 install -r requirements.txt
-
-3️⃣ Run Streamlit App
-cd streamlit_app
-python3 -m streamlit run app.py
-
-4️⃣ Open in Browser
-http://localhost:8501
-
-📈 Evaluation Metrics Addressed
-
-Data Extraction Accuracy – Clean ingestion and validation
-
-SQL Database Design – Normalized schema with relationships
-
-Query Efficiency – Optimized aggregation queries
-
-Application Functionality – Multi-page interactive UI
-
-Project Completeness – End-to-end pipeline
-
-Error Handling – Schema mismatches and path resolution handled
-
-Innovation – Geospatial mapping and route analytics
-
-🧪 Error Handling & Robustness
-
-Centralized database connection using absolute paths
-
-Safe handling of missing or null values
-
-Streamlit page isolation to prevent app-wide crashes
-
-Debug-friendly architecture for scalability
-
-📌 Key Learnings
-
-Designing analytics-focused SQL schemas
-
-Writing efficient SQL queries for business insights
-
-Building modular, production-grade Streamlit applications
-
-Handling real-world issues like path resolution and schema mismatches
-
-Translating raw data into actionable insights
-
-🔮 Future Enhancements
-
-Airline-level performance KPIs
-
-Date-range filters for time-series analysis
-
-Route visualization with origin–destination paths
-
-API-based live data ingestion
-
-Deployment on Streamlit Cloud
-
-👤 Author
-
-Jyoti Bharadwaj
-B.Tech (ECE) | Data Analytics Enthusiast
+Jyoti Bharadwaj  
+B.Tech (ECE) | Data Analytics Enthusiast  
 Skills: SQL, Python, Pandas, Streamlit, Data Visualization
 
-📜 License
+---
+
+## 📜 License
 
 This project is for educational and portfolio purposes.

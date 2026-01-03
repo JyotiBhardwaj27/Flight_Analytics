@@ -31,30 +31,10 @@ The application enables users to explore flight data, analyze delays, visualize 
 
 ## 🏗️ Project Architecture
 
-air_tracker/
-│
-├── database/
-│   └── air_tracker.db          # SQLite database
-│
-├── data/
-│   └── *.csv                   # Raw / processed datasets
-│
-├── notebooks/
-│   └── *.ipynb                 # Exploration & validation
-│
-├── streamlit_app/
-│   ├── app.py                  # Homepage (KPIs & overview)
-│   ├── db.py                   # Centralized DB connection
-│   └── pages/
-│       ├── 1_Flights.py        # Flight search & analysis
-│       ├── 2_Airports.py       # Airport details & map
-│       ├── 3_Delay_Analysis.py # Delay insights
-│       └── 4_Routes.py         # Route analytics
-│
-├── requirements.txt
-└── README.md
+<p align="center">
+  <img src="assets/architecture.png" width="700">
+</p>
 
----
 
 ## 🗄️ Database Design
 

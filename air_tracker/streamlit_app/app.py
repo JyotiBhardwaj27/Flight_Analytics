@@ -126,7 +126,7 @@ with tab1:
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    # ---- Flights Over Time (Hourly)----
+    # ---- Hourly Flight Trend (Line Chart) ----
     with colD:
         fig = px.line(
             hourly_flights_df,
@@ -134,26 +134,24 @@ with tab1:
             y="flights",
             markers=True,
             title="Hourly Flight Trend"
-       )
-       st.plotly_chart(fig, use_container_width=True)
+        )
+
+        # Optional polish
         fig.update_layout(
             xaxis_title="Hour of Day",
             yaxis_title="Number of Flights"
-       )
+        )
+        fig.update_traces(line=dict(width=3))
 
-       st.plotly_chart(fig, use_container_width=True)
-
-
+        st.plotly_chart(fig, use_container_width=True)
 
 # ================= TAB 2 : TABLES =================
 with tab2:
     st.subheader("Flights by Status")
     st.dataframe(status_df, use_container_width=True)
 
+    st.subheader("Arrival vs Departure Summary")
+    st.dataframe(flight_type_df, use_container_width=True)
+
     st.subheader("Top Airlines by Flight Count")
     st.dataframe(airline_df, use_container_width=True)
-
-
-    st.subheader("Top Airlines")
-    st.dataframe(airline_df)
-

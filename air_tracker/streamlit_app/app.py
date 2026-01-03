@@ -10,148 +10,106 @@ def get_connection():
         check_same_thread=False
     )
 
+conn = get_connection()
+
 st.set_page_config(page_title="Air Tracker", layout="wide")
 st.title("✈️ Air Tracker – Overview")
 
-conn = get_connection()
-
-# ---------------- KPI METRICS ----------------
+# ================= KPIs (GLOBAL ONLY) =================
 col1, col2, col3, col4, col5 = st.columns(5)
 
 total_airports = pd.read_sql(
-    "SELECT COUNT(*) AS cnt FROM airport", conn
+    "SELECT COUNT(*) cnt FROM airport", conn
 )["cnt"][0]
 
 total_flights = pd.read_sql(
-    "SELECT COUNT(*) AS cnt FROM flights", conn
+    "SELECT COUNT(*) cnt FROM flights", conn
 )["cnt"][0]
 
-total_airlines = pd.read_sql(
-    "SELECT COUNT(DISTINCT airline_name) AS cnt FROM flights", conn
-)["cnt"][0]
-
-delayed_flights = pd.read_sql(
-    "SELECT COUNT(*) AS cnt FROM flights WHERE status='Delayed'", conn
+active_airlines = pd.read_sql(
+    "SELECT COUNT(DISTINCT airline_name) cnt FROM flights", conn
 )["cnt"][0]
 
 avg_delay = pd.read_sql(
-    "SELECT ROUND(AVG(avg_delay_min),2) AS avg_delay FROM airport_delays",
+    "SELECT ROUND(AVG(avg_delay_min),2) avg_delay FROM airport_delays",
     conn
 )["avg_delay"][0]
 
+delayed_pct = pd.read_sql(
+    """
+    SELECT ROUND(
+        100.0 * SUM(CASE WHEN status='Delayed' THEN 1 ELSE 0 END) / COUNT(*),
+        2
+    ) AS delay_pct
+    FROM flights
+    """,
+    conn
+)["delay_pct"][0]
+
 col1.metric("Total Airports", total_airports)
 col2.metric("Total Flights", total_flights)
-col3.metric("Active Airlines", total_airlines)
-col4.metric("Delayed Flights", delayed_flights)
-col5.metric("Avg Delay (min)", avg_delay)
+col3.metric("Active Airlines", active_airlines)
+col4.metric("Avg Delay (min)", avg_delay)
+col5.metric("Delayed Flights (%)", delayed_pct)
 
-# ---------------- DATA PREP ----------------
-status_df = pd.read_sql(
-    "SELECT status, COUNT(*) AS flight_count FROM flights GROUP BY status",
-    conn
-)
+# ================= CHARTS =================
+tab1, tab2 = st.tabs(["📊 Overview Charts", "📋 Summary Tables"])
 
-airline_df = pd.read_sql(
-    """
-    SELECT airline_name, COUNT(*) AS flights
-    FROM flights
-    GROUP BY airline_name
-    ORDER BY flights DESC
-    LIMIT 10
-    """,
-    conn
-)
-
-flight_type_df = pd.read_sql(
-    """
-    SELECT flight_type, COUNT(*) AS cnt
-    FROM flights
-    GROUP BY flight_type
-    """,
-    conn
-)
-
-hourly_flights_df = pd.read_sql(
-    """
-    SELECT 
-        strftime('%H', scheduled_time) AS hour,
-        COUNT(*) AS flights
-    FROM flights
-    WHERE scheduled_time IS NOT NULL
-    GROUP BY hour
-    ORDER BY hour
-    """,
-    conn
-)
-
-# ---------------- TABS ----------------
-tab1, tab2 = st.tabs(["📊 Overview Charts", "📋 Key Tables"])
-
-# ================= TAB 1 : CHARTS =================
 with tab1:
-
     colA, colB = st.columns(2)
 
-    # ---- Flight Status Pie ----
+    # 1. Flight Status Distribution (ONLY HERE)
+    status_df = pd.read_sql(
+        "SELECT status, COUNT(*) flights FROM flights GROUP BY status",
+        conn
+    )
+
     with colA:
         fig = px.pie(
             status_df,
             names="status",
-            values="flight_count",
+            values="flights",
             title="Flight Status Distribution"
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    # ---- Arrival vs Departure ----
+    # 2. Arrival vs Departure Share
+    movement_df = pd.read_sql(
+        "SELECT flight_type, COUNT(*) flights FROM flights GROUP BY flight_type",
+        conn
+    )
+
     with colB:
-        fig = px.bar(
-            flight_type_df,
-            x="flight_type",
-            y="cnt",
-            title="Arrival vs Departure Flights",
-            text_auto=True
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    colC, colD = st.columns(2)
-
-    # ---- Top Airlines Donut ----
-    with colC:
         fig = px.pie(
-            airline_df.head(5),
-            names="airline_name",
+            movement_df,
+            names="flight_type",
             values="flights",
             hole=0.45,
-            title="Top Airlines – Market Share"
+            title="Arrival vs Departure Share"
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    # ---- Hourly Flight Trend (Line Chart) ----
-    with colD:
-        fig = px.line(
-            hourly_flights_df,
-            x="hour",
-            y="flights",
-            markers=True,
-            title="Hourly Flight Trend"
-        )
+    # 3. Top 5 Airlines (EXECUTIVE VIEW)
+    airline_df = pd.read_sql(
+        """
+        SELECT airline_name, COUNT(*) flights
+        FROM flights
+        GROUP BY airline_name
+        ORDER BY flights DESC
+        LIMIT 5
+        """,
+        conn
+    )
 
-        # Optional polish
-        fig.update_layout(
-            xaxis_title="Hour of Day",
-            yaxis_title="Number of Flights"
-        )
-        fig.update_traces(line=dict(width=3))
+    fig = px.bar(
+        airline_df,
+        x="airline_name",
+        y="flights",
+        title="Top 5 Airlines by Flights",
+        text_auto=True
+    )
+    st.plotly_chart(fig, use_container_width=True)
 
-        st.plotly_chart(fig, use_container_width=True)
-
-# ================= TAB 2 : TABLES =================
 with tab2:
-    st.subheader("Flights by Status")
-    st.dataframe(status_df, use_container_width=True)
-
-    st.subheader("Arrival vs Departure Summary")
-    st.dataframe(flight_type_df, use_container_width=True)
-
-    st.subheader("Top Airlines by Flight Count")
+    st.subheader("Top Airlines Summary")
     st.dataframe(airline_df, use_container_width=True)

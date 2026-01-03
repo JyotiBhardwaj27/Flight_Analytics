@@ -11,14 +11,10 @@ def get_connection():
     )
 
 conn = get_connection()
-st.title("✈️ Flights Analysis")
+st.title("✈️ Flights – Operational Analysis")
 
-# ================= KPIs =================
+# ================= KPIs (ONLY FLIGHT-SPECIFIC) =================
 col1, col2, col3, col4 = st.columns(4)
-
-total_flights = pd.read_sql(
-    "SELECT COUNT(*) AS cnt FROM flights", conn
-)["cnt"][0]
 
 arrivals = pd.read_sql(
     "SELECT COUNT(*) AS cnt FROM flights WHERE flight_type='arrival'", conn
@@ -32,25 +28,34 @@ delayed = pd.read_sql(
     "SELECT COUNT(*) AS cnt FROM flights WHERE status='Delayed'", conn
 )["cnt"][0]
 
-col1.metric("Total Flights", total_flights)
-col2.metric("Arrivals", arrivals)
-col3.metric("Departures", departures)
-col4.metric("Delayed Flights", delayed)
+cancelled = pd.read_sql(
+    "SELECT COUNT(*) AS cnt FROM flights WHERE LOWER(status) IN ('cancelled','canceled')",
+    conn
+)["cnt"][0]
+
+col1.metric("Arrivals", arrivals)
+col2.metric("Departures", departures)
+col3.metric("Delayed Flights", delayed)
+col4.metric("Cancelled Flights", cancelled)
 
 # ================= TABS =================
 tab1, tab2, tab3 = st.tabs(
-    ["📊 Flight Overview", "🧭 Routes & Operations", "📋 Tables & Filters"]
+    ["📊 Flight Overview", "🧭 Operations Breakdown", "📋 Flights Table"]
 )
 
 # ======================================================
-# TAB 1 : FLIGHT OVERVIEW (CHARTS)
+# TAB 1 : FLIGHT OVERVIEW
 # ======================================================
 with tab1:
     colA, colB = st.columns(2)
 
     # 1. Flight Status Distribution
     status_df = pd.read_sql(
-        "SELECT status, COUNT(*) AS flights FROM flights GROUP BY status",
+        """
+        SELECT status, COUNT(*) AS flights
+        FROM flights
+        GROUP BY status
+        """,
         conn
     )
 
@@ -59,7 +64,7 @@ with tab1:
             status_df,
             names="status",
             values="flights",
-            title="Flight Status Distribution"
+            title="Overall Flight Status Distribution"
         )
         st.plotly_chart(fig, use_container_width=True)
 
@@ -86,7 +91,7 @@ with tab1:
 
     colC, colD = st.columns(2)
 
-    # 3. Flights by Airline
+    # 3. Flights by Airline (Operational Load)
     airline_df = pd.read_sql(
         """
         SELECT airline_name, COUNT(*) AS flights
@@ -129,51 +134,25 @@ with tab1:
         st.plotly_chart(fig, use_container_width=True)
 
 # ======================================================
-# TAB 2 : ROUTES & OPERATIONS (CHARTS)
+# TAB 2 : OPERATIONS BREAKDOWN (JOINS, NO REPEAT)
 # ======================================================
 with tab2:
     colA, colB = st.columns(2)
 
-    # 1. Top Airports by Total Movements
-    airport_df = pd.read_sql(
-        """
-        SELECT
-            a.iata_code,
-            a.city,
-            COUNT(f.flight_number) AS total_movements
-        FROM airport a
-        LEFT JOIN flights f
-            ON a.iata_code IN (f.origin_iata, f.destination_iata)
-        GROUP BY a.iata_code, a.city
-        ORDER BY total_movements DESC
-        LIMIT 10
-        """,
-        conn
-    )
-
-    with colA:
-        fig = px.bar(
-            airport_df,
-            x="total_movements",
-            y="iata_code",
-            orientation="h",
-            title="Top Airports by Total Movements"
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
-    # 2. Flights by Origin Country
+    # 1. Flights by Origin Country
     country_df = pd.read_sql(
         """
         SELECT o.country, COUNT(*) AS flights
         FROM flights f
-        JOIN airport o ON f.origin_iata = o.iata_code
+        JOIN airport o
+            ON f.origin_iata = o.iata_code
         GROUP BY o.country
         ORDER BY flights DESC
         """,
         conn
     )
 
-    with colB:
+    with colA:
         fig = px.pie(
             country_df,
             names="country",
@@ -182,7 +161,7 @@ with tab2:
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    # 3. Airline-wise Flight Status (Treemap – enlarged)
+    # 2. Airline-wise Flight Status (Treemap)
     airline_status_df = pd.read_sql(
         """
         SELECT airline_name, status, COUNT(*) AS flights
@@ -192,18 +171,18 @@ with tab2:
         conn
     )
 
-    fig = px.treemap(
-        airline_status_df,
-        path=["airline_name", "status"],
-        values="flights",
-        title="Airline-wise Flight Status Distribution",
-        height=650   # 👈 Increased size
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
+    with colB:
+        fig = px.treemap(
+            airline_status_df,
+            path=["airline_name", "status"],
+            values="flights",
+            title="Airline-wise Flight Status Distribution",
+            height=650
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
 # ======================================================
-# TAB 3 : TABLES & FILTERS
+# TAB 3 : FLIGHTS TABLE (ONLY PLACE FOR RAW DATA)
 # ======================================================
 with tab3:
     st.subheader("🔎 Filter Flights")
@@ -251,9 +230,3 @@ with tab3:
 
     flights_table = pd.read_sql(base_query, conn, params=params)
     st.dataframe(flights_table, use_container_width=True)
-
-    st.subheader("📋 Airline-wise Flight Count")
-    st.dataframe(airline_df, use_container_width=True)
-
-    st.subheader("📋 Airport Movement Summary")
-    st.dataframe(airport_df, use_container_width=True)

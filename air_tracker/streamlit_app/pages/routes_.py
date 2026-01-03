@@ -1,7 +1,7 @@
 import sqlite3
 
 def get_connection():
-    return sqlite3.connect("../database/air_tracker.db", check_same_thread=False)
+    return sqlite3.connect("air_tracker/streamlit_app/database/air_tracker.db", check_same_thread=False)
 
 import streamlit as st
 import pandas as pd

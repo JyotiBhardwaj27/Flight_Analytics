@@ -129,22 +129,8 @@ Charts were selected based on business questions rather than using a single char
 ---
 
 ## 🚀 How to Run the Application
-
-1. Clone the repository  
-git clone <repository-url>  
-cd air_tracker  
-
-2. Install dependencies  
-pip install -r requirements.txt  
-
-3. Run Streamlit app  
-cd streamlit_app  
-python3 -m streamlit run app.py  
-
-4. Open in browser  
-http://localhost:8501  
-
----
+The application has been deployed on Streamlit Cloud. Click on below link to open:
+https://flightanalytics-jqc4zntexjwn3b7kwfld8w.streamlit.app/
 
 ## 📦 requirements.txt
 

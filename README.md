@@ -135,12 +135,12 @@ https://flightanalytics-jqc4zntexjwn3b7kwfld8w.streamlit.app/
 
 ## 📦 requirements.txt
 
-streamlit
-pandas
-numpy
-plotly
-matplotlib
-seaborn
+- streamlit
+- pandas
+- numpy
+- plotly
+- matplotlib
+- seaborn
 ---
 
 ## 🧪 Error Handling & Robustness

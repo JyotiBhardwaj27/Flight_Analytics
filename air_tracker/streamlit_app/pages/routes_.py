@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import sqlite3
-import plotly.express as px
 
 def get_connection():
     return sqlite3.connect(
@@ -10,149 +9,38 @@ def get_connection():
     )
 
 conn = get_connection()
-st.title("🧭 Route Analysis")
+st.title("🧭 Route Leaderboards")
 
-# ================= KPIs =================
-col1, col2, col3, col4 = st.columns(4)
+# ---------------- Busiest Routes ----------------
+st.subheader("🔥 Busiest Routes (Most Flights)")
 
-route_kpis = pd.read_sql(
-    """
-    SELECT
-        COUNT(DISTINCT origin_iata || '-' || destination_iata) AS total_routes,
-        SUM(CASE WHEN o.country = d.country THEN 1 ELSE 0 END) AS domestic,
-        SUM(CASE WHEN o.country != d.country THEN 1 ELSE 0 END) AS international
-    FROM flights f
-    JOIN airport o ON f.origin_iata = o.iata_code
-    JOIN airport d ON f.destination_iata = d.iata_code
-    """,
-    conn
-)
-
-top_route_df = pd.read_sql(
-    """
-    SELECT o.city || ' → ' || d.city AS route, COUNT(*) AS flights
-    FROM flights f
-    JOIN airport o ON f.origin_iata = o.iata_code
-    JOIN airport d ON f.destination_iata = d.iata_code
-    GROUP BY route
-    ORDER BY flights DESC
-    LIMIT 1
-    """,
-    conn
-)
-
-if not top_route_df.empty:
-    top_route = top_route_df.iloc[0]["route"]
-else:
-    top_route = "Not Available"
-
-
-col1.metric("Unique Routes", route_kpis["total_routes"][0])
-col2.metric("Top Route", top_route)
-col3.metric("Domestic Routes", route_kpis["domestic"][0])
-col4.metric("International Routes", route_kpis["international"][0])
-
-# ================= CHARTS =================
-colA, colB = st.columns(2)
-
-# 1. Top City-Pair Routes
 routes_df = pd.read_sql(
     """
     SELECT
-        o.city || ' → ' || d.city AS route,
+        origin_iata || ' → ' || destination_iata AS route,
         COUNT(*) AS flights
-    FROM flights f
-    JOIN airport o ON f.origin_iata = o.iata_code
-    JOIN airport d ON f.destination_iata = d.iata_code
+    FROM flights
     GROUP BY route
     ORDER BY flights DESC
-    LIMIT 10
     """,
     conn
 )
 
-with colA:
-    fig = px.bar(
-        routes_df,
-        x="flights",
-        y="route",
-        orientation="h",
-        title="Top 10 City-Pair Routes"
-    )
-    st.plotly_chart(fig, use_container_width=True)
+st.dataframe(routes_df, use_container_width=True)
 
-# 2. Flights by Origin Country
-country_df = pd.read_sql(
+# ---------------- Most Delayed Airports ----------------
+st.subheader("⏱️ Most Delayed Airports")
+
+delay_df = pd.read_sql(
     """
-    SELECT o.country, COUNT(*) AS flights
-    FROM flights f
-    JOIN airport o ON f.origin_iata = o.iata_code
-    GROUP BY o.country
-    ORDER BY flights DESC
+    SELECT airport_iata,
+           ROUND(100.0 * delayed_flights / total_flights,2) AS delay_pct,
+           avg_delay_min
+    FROM airport_delays
+    WHERE total_flights > 0
+    ORDER BY delay_pct DESC
     """,
     conn
 )
 
-with colB:
-    fig = px.pie(
-        country_df,
-        names="country",
-        values="flights",
-        title="Flights by Origin Country"
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-colC, colD = st.columns(2)
-
-# 3. Domestic vs International Routes
-dom_int_df = pd.read_sql(
-    """
-    SELECT
-        CASE
-            WHEN o.country = d.country THEN 'Domestic'
-            ELSE 'International'
-        END AS route_type,
-        COUNT(*) AS flights
-    FROM flights f
-    JOIN airport o ON f.origin_iata = o.iata_code
-    JOIN airport d ON f.destination_iata = d.iata_code
-    GROUP BY route_type
-    """,
-    conn
-)
-
-with colC:
-    fig = px.pie(
-        dom_int_df,
-        names="route_type",
-        values="flights",
-        hole=0.45,
-        title="Domestic vs International Routes"
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-# 4. Country-to-Country Flow
-flow_df = pd.read_sql(
-    """
-    SELECT
-        o.country AS origin_country,
-        d.country AS destination_country,
-        COUNT(*) AS flights
-    FROM flights f
-    JOIN airport o ON f.origin_iata = o.iata_code
-    JOIN airport d ON f.destination_iata = d.iata_code
-    GROUP BY origin_country, destination_country
-    ORDER BY flights DESC
-    """,
-    conn
-)
-
-with colD:
-    fig = px.treemap(
-        flow_df,
-        path=["origin_country", "destination_country"],
-        values="flights",
-        title="Country-to-Country Flight Flow",
-        height=600
-    )
-    st.plotly_chart(fig, use_container_width=True)
+st.dataframe(delay_df, use_container_width=True)

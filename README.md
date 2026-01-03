@@ -32,7 +32,7 @@ The application enables users to explore flight data, analyze delays, visualize 
 ## 🏗️ Project Architecture
 
 <p align="center">
-  <img src="assets/architecture.png" width="700">
+  <img src="air_tracker/assets/architecture.png" width="700">
 </p>
 
 

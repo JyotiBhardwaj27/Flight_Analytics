@@ -135,10 +135,12 @@ https://flightanalytics-jqc4zntexjwn3b7kwfld8w.streamlit.app/
 
 ## 📦 requirements.txt
 
-streamlit>=1.30.0  
-pandas>=2.0.0  
-plotly>=5.15.0  
-
+streamlit
+pandas
+numpy
+plotly
+matplotlib
+seaborn
 ---
 
 ## 🧪 Error Handling & Robustness

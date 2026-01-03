@@ -11,21 +11,15 @@ def get_connection():
     )
 
 conn = get_connection()
-
 st.title("🌍 Airports Analysis")
 
-# ================= KPIs =================
-col1, col2, col3, col4, col5 = st.columns(5)
+# ================= KPIs (AIRPORT-SPECIFIC ONLY) =================
+col1, col2, col3, col4 = st.columns(4)
 
-total_airports = pd.read_sql(
-    "SELECT COUNT(*) AS cnt FROM airport", conn
-)["cnt"][0]
-
-busiest_departure = pd.read_sql(
+busiest_airport = pd.read_sql(
     """
-    SELECT origin_iata AS airport, COUNT(*) AS flights
+    SELECT origin_iata airport, COUNT(*) flights
     FROM flights
-    WHERE flight_type = 'departure'
     GROUP BY origin_iata
     ORDER BY flights DESC
     LIMIT 1
@@ -33,27 +27,10 @@ busiest_departure = pd.read_sql(
     conn
 )
 
-busiest_arrival = pd.read_sql(
-    """
-    SELECT destination_iata AS airport, COUNT(*) AS flights
-    FROM flights
-    WHERE flight_type = 'arrival'
-    GROUP BY destination_iata
-    ORDER BY flights DESC
-    LIMIT 1
-    """,
-    conn
-)
-
-avg_delay = pd.read_sql(
-    "SELECT ROUND(AVG(avg_delay_min),2) AS avg_delay FROM airport_delays",
-    conn
-)["avg_delay"][0]
-
-worst_airport = pd.read_sql(
+worst_delay_airport = pd.read_sql(
     """
     SELECT airport_iata,
-           ROUND(100.0 * delayed_flights / total_flights, 2) AS delay_pct
+           ROUND(100.0 * delayed_flights / total_flights, 2) delay_pct
     FROM airport_delays
     WHERE total_flights > 0
     ORDER BY delay_pct DESC
@@ -62,19 +39,33 @@ worst_airport = pd.read_sql(
     conn
 )
 
-col1.metric("Total Airports", total_airports)
-col2.metric("Busiest Departure", busiest_departure["airport"][0])
-col3.metric("Busiest Arrival", busiest_arrival["airport"][0])
-col4.metric("Avg Delay (min)", avg_delay)
-col5.metric("Worst Delay Airport", worst_airport["airport_iata"][0])
+avg_delay_airport = pd.read_sql(
+    "SELECT ROUND(AVG(avg_delay_min),2) avg_delay FROM airport_delays",
+    conn
+)["avg_delay"][0]
+
+zero_arrival_airports = pd.read_sql(
+    """
+    SELECT COUNT(*) cnt
+    FROM airport a
+    LEFT JOIN flights f ON a.iata_code = f.destination_iata
+    WHERE f.flight_number IS NULL
+    """,
+    conn
+)["cnt"][0]
+
+col1.metric("Busiest Airport", busiest_airport["airport"][0])
+col2.metric("Worst Delay Airport", worst_delay_airport["airport_iata"][0])
+col3.metric("Avg Airport Delay (min)", avg_delay_airport)
+col4.metric("Airports w/ No Arrivals", zero_arrival_airports)
 
 # ================= TABS =================
-tab1, tab2, tab3 = st.tabs(["🌍 Map", "📊 Airport Analysis", "🏢 Airport Detail"])
+tab1, tab2, tab3 = st.tabs(["🌍 Map", "📊 Airport Analysis", "📋 Airport Tables"])
 
-# ================= TAB 1 : MAP =================
+# ======================================================
+# TAB 1 : MAP (TRUE FLIGHT DENSITY)
+# ======================================================
 with tab1:
-    st.subheader("Flight Density by Airport (Arrivals + Departures)")
-
     map_df = pd.read_sql(
         """
         SELECT
@@ -83,13 +74,7 @@ with tab1:
             a.city,
             a.latitude,
             a.longitude,
-            SUM(
-                CASE
-                    WHEN f.origin_iata = a.iata_code THEN 1
-                    WHEN f.destination_iata = a.iata_code THEN 1
-                    ELSE 0
-                END
-            ) AS total_movements
+            COUNT(f.flight_number) total_movements
         FROM airport a
         LEFT JOIN flights f
             ON a.iata_code IN (f.origin_iata, f.destination_iata)
@@ -107,7 +92,7 @@ with tab1:
         hover_data=["iata_code", "city", "total_movements"],
         zoom=1.5,
         height=550,
-        title="Airport Flight Density Map"
+        title="Airport Flight Density (Arrivals + Departures)"
     )
 
     fig.update_layout(
@@ -117,17 +102,19 @@ with tab1:
 
     st.plotly_chart(fig, use_container_width=True)
 
-# ================= TAB 2 : ANALYSIS =================
+# ======================================================
+# TAB 2 : ANALYSIS
+# ======================================================
 with tab2:
     colA, colB = st.columns(2)
 
-    outbound_df = pd.read_sql(
+    # Top Airports by Movements
+    top_airports_df = pd.read_sql(
         """
-        SELECT origin_iata, COUNT(*) AS outbound_flights
+        SELECT origin_iata airport, COUNT(*) flights
         FROM flights
-        WHERE flight_type = 'departure'
         GROUP BY origin_iata
-        ORDER BY outbound_flights DESC
+        ORDER BY flights DESC
         LIMIT 10
         """,
         conn
@@ -135,20 +122,21 @@ with tab2:
 
     with colA:
         fig = px.bar(
-            outbound_df,
-            x="origin_iata",
-            y="outbound_flights",
-            title="Top 10 Airports by Departures",
-            text_auto=True
+            top_airports_df,
+            x="flights",
+            y="airport",
+            orientation="h",
+            title="Top Airports by Outbound Flights"
         )
         st.plotly_chart(fig, use_container_width=True)
 
+    # Arrival vs Departure by Airport
     movement_df = pd.read_sql(
         """
         SELECT
             a.iata_code,
-            SUM(CASE WHEN f.flight_type='departure' THEN 1 ELSE 0 END) AS departures,
-            SUM(CASE WHEN f.flight_type='arrival' THEN 1 ELSE 0 END) AS arrivals
+            SUM(CASE WHEN f.flight_type='departure' THEN 1 ELSE 0 END) departures,
+            SUM(CASE WHEN f.flight_type='arrival' THEN 1 ELSE 0 END) arrivals
         FROM airport a
         LEFT JOIN flights f
             ON a.iata_code IN (f.origin_iata, f.destination_iata)
@@ -162,32 +150,24 @@ with tab2:
             movement_df,
             x="iata_code",
             y=["departures", "arrivals"],
-            title="Arrivals vs Departures by Airport",
-            barmode="group"
+            barmode="group",
+            title="Arrivals vs Departures by Airport"
         )
         st.plotly_chart(fig, use_container_width=True)
 
-# ================= TAB 3 : AIRPORT DETAIL =================
+# ======================================================
+# TAB 3 : TABLES
+# ======================================================
 with tab3:
-    airport_list = pd.read_sql(
-        "SELECT iata_code FROM airport ORDER BY iata_code", conn
-    )["iata_code"].tolist()
+    st.subheader("Airport Movement Summary")
+    st.dataframe(movement_df, use_container_width=True)
 
-    selected_airport = st.selectbox("Select Airport", airport_list)
-
-    detail_df = pd.read_sql(
-        f"""
-        SELECT
-            airline_name,
-            COUNT(*) AS flights
-        FROM flights
-        WHERE origin_iata = '{selected_airport}'
-           OR destination_iata = '{selected_airport}'
-        GROUP BY airline_name
-        ORDER BY flights DESC
+    st.subheader("Airport Delay Metrics")
+    delay_df = pd.read_sql(
+        """
+        SELECT airport_iata, avg_delay_min, median_delay_min, canceled_flights
+        FROM airport_delays
         """,
         conn
     )
-
-    st.write(f"### Airlines operating at {selected_airport}")
-    st.dataframe(detail_df, use_container_width=True)
+    st.dataframe(delay_df, use_container_width=True)

@@ -16,16 +16,27 @@ st.title("🌍 Airports Analysis")
 # ================= KPIs (AIRPORT-SPECIFIC ONLY) =================
 col1, col2, col3, col4 = st.columns(4)
 
-busiest_airport = pd.read_sql(
+busiest_airport_df = pd.read_sql(
     """
-    SELECT origin_iata airport, COUNT(*) flights
-    FROM flights
-    GROUP BY origin_iata
-    ORDER BY flights DESC
+    SELECT
+        a.iata_code,
+        a.city,
+        COUNT(f.flight_number) AS movements
+    FROM airport a
+    LEFT JOIN flights f
+        ON a.iata_code IN (f.origin_iata, f.destination_iata)
+    GROUP BY a.iata_code, a.city
+    ORDER BY movements DESC
     LIMIT 1
     """,
     conn
 )
+
+if not busiest_airport_df.empty:
+    busiest_airport = busiest_airport_df.iloc[0]["iata_code"]
+else:
+    busiest_airport = "N/A"
+
 
 worst_delay_airport = pd.read_sql(
     """

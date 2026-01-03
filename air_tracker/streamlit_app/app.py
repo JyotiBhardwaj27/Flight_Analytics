@@ -4,7 +4,7 @@ import sqlite3
 import plotly.express as px
 
 def get_connection():
-    return sqlite3.connect("../database/air_tracker.db", check_same_thread=False)
+    return sqlite3.connect("air_tracker/streamlit_app/database/air_tracker.db", check_same_thread=False)
 
 st.set_page_config(page_title="Air Tracker", layout="wide")
 st.title("✈️ Air Tracker – Overview")

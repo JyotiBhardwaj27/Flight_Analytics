@@ -28,18 +28,24 @@ route_kpis = pd.read_sql(
     conn
 )
 
-top_route = pd.read_sql(
+top_route_df = pd.read_sql(
     """
-    SELECT o.city || ' → ' || d.city AS route
+    SELECT o.city || ' → ' || d.city AS route, COUNT(*) AS flights
     FROM flights f
     JOIN airport o ON f.origin_iata = o.iata_code
     JOIN airport d ON f.destination_iata = d.iata_code
     GROUP BY route
-    ORDER BY COUNT(*) DESC
+    ORDER BY flights DESC
     LIMIT 1
     """,
     conn
-)["route"][0]
+)
+
+if not top_route_df.empty:
+    top_route = top_route_df.iloc[0]["route"]
+else:
+    top_route = "Not Available"
+
 
 col1.metric("Unique Routes", route_kpis["total_routes"][0])
 col2.metric("Top Route", top_route)

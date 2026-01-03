@@ -168,7 +168,6 @@ https://flightanalytics-jqc4zntexjwn3b7kwfld8w.streamlit.app/
 - Date-range based trend analysis
 - Route flow visualization on maps
 - Live API-based data ingestion
-- Deployment on Streamlit Cloud
 
 ---
 

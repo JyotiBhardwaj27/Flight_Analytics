@@ -4,7 +4,7 @@ import sqlite3
 import plotly.express as px
 
 def get_connection():
-    return sqlite3.connect("../database/air_tracker.db", check_same_thread=False)
+    return sqlite3.connect("air_tracker/streamlit_app/database/air_tracker.db", check_same_thread=False)
 
 tab1, tab2, tab3 = st.tabs(["🌍 Map", "🏢 Airport Details", "📊 Airport Analysis"])
 

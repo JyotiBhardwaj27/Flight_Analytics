@@ -1,0 +1,15 @@
+icao_code,iata_code,name,city,country,continent,latitude,longitude,timezone
+VIDP,DEL,New Delhi Indira Gandhi,New Delhi,IN,Asia,28.5665,77.1031,Asia/Kolkata
+VABB,BOM,Mumbai Chhatrapati Shivaji,Mumbai,IN,Asia,19.0887,72.8679,Asia/Kolkata
+VOBL,BLR,Bangalore Bengaluru,Bangalore,IN,Asia,13.197899,77.7063,Asia/Kolkata
+VOHS,HYD,Hyderabad Rajiv Gandhi,Hyderabad,IN,Asia,17.231318,78.429855,Asia/Kolkata
+VOMM,MAA,Chennai,Chennai,IN,Asia,12.990005,80.1693,Asia/Kolkata
+VECC,CCU,Kolkata Netaji Subhash Chandra Bose,Kolkata,IN,Asia,22.6547,88.4467,Asia/Kolkata
+VOCI,COK,Kochi Cochin,Kochi,IN,Asia,10.152,76.4019,Asia/Kolkata
+KJFK,JFK,New York John F Kennedy,New York,US,North America,40.6398,-73.7789,America/New_York
+EGLL,LHR,London Heathrow,London,GB,Europe,51.4706,-0.461941,Europe/London
+OMDB,DXB,Dubai,Dubai,AE,Asia,25.252798,55.3644,Asia/Dubai
+WSSS,SIN,Singapore Changi,Singapore,SG,Asia,1.35019,103.994,Asia/Singapore
+LFPG,CDG,Paris Charles de Gaulle,Paris,FR,Europe,49.0128,2.549999,Europe/Paris
+RJTT,HND,Tokyo,Tokyo,JP,Asia,35.5523,139.78,Asia/Tokyo
+YSSY,SYD,Sydney Kingsford Smith,Sydney,AU,Australia,-33.9461,151.177,Australia/Sydney

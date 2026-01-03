@@ -133,7 +133,7 @@ with tab1:
             cancel_df,
             x="airport_iata",
             y=["delayed_flights", "canceled_flights"],
-            barmode="group",
+            barmode="stack",
             title="Delayed vs Cancelled Flights"
         )
         st.plotly_chart(fig, use_container_width=True)

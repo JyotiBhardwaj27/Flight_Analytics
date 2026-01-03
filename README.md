@@ -130,6 +130,7 @@ Charts were selected based on business questions rather than using a single char
 
 ## 🚀 How to Run the Application
 The application has been deployed on Streamlit Cloud. Click on below link to open:
+
 https://flightanalytics-jqc4zntexjwn3b7kwfld8w.streamlit.app/
 
 ## 📦 requirements.txt

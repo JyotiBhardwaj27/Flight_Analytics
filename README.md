@@ -143,6 +143,16 @@ https://flightanalytics-jqc4zntexjwn3b7kwfld8w.streamlit.app/
 - seaborn
 ---
 
+## 🔍 Key Insights
+
+- Flight activity is **concentrated around a small set of major airports**, which handle a disproportionately high number of arrivals and departures compared to others.
+- Delay performance is **not uniform across airports**; a few airports contribute most to total delayed flights, making them key candidates for operational improvement.
+- Delay severity analysis shows that **most delays are minor to moderate**, while severe delays are limited to a small subset of airports.
+- High traffic volume does **not always imply poor reliability**; some busy airports maintain lower delay rates, while others experience inefficiencies despite lower traffic.
+- Aircraft utilization is **uneven across the fleet**, with certain aircraft models and registrations operating significantly more flights than others.
+- Due to limited and uneven route repetition in the dataset, **route-level insights are best interpreted through airport connectivity and delay impact**, rather than standalone route metrics.
+
+
 ## 🧪 Error Handling & Robustness
 
 - Centralized database connection using absolute paths

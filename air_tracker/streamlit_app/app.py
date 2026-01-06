@@ -12,8 +12,8 @@ def get_connection():
 
 conn = get_connection()
 
-st.set_page_config(page_title="Air Tracker", layout="wide")
-st.title("✈️ Air Tracker – Overview")
+st.set_page_config(page_title="Dashboard Overview", layout="wide")
+st.title("✈️ Flight Analytics – Overview")
 
 # ================= KPIs (GLOBAL ONLY) =================
 col1, col2, col3, col4, col5 = st.columns(5)
